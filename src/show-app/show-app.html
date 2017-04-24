@@ -1,4 +1,16 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html"/>
+<link rel="import" href="../../bower_components/paper-item/paper-item.html"/>
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html"/>
+
 
 <dom-module id="show-app">
   <template>
@@ -6,11 +18,124 @@
       :host {
         display: block;
       }
+	  
+	  #head {
+		display: block;
+        background-color: rgba(250, 112, 62, 1);
+		height:40px;
+		weight: 100px;
+		text-align:center;
+		line-height: 80px;
+		color:white;
+		padding-bottom:20px;
+		margin-bottom:20px;
+      }
+	  
+	  #inp{
+		display: block;
+        <!--background-color: rgba(205, 255, 173, 1);-->
+		background-color:white;
+		height:200px;
+		width: 200px;
+		text-align:center;
+		color:black;
+		padding:10px;
+		margin: 0 auto;
+	  }
+	  
+	  .block1 { 
+		width: 800px; 
+		height: 100px;
+		background: rgba(205, 255, 173, 1);
+		padding: 5px;
+		padding-right: 20px; 
+		padding-bottom: 30px;
+		border: solid 1px black; 
+		float: left;
+	   }
+	   
+	   .blockHelp { 
+		background: rgba(205, 255, 173, 1);
+		border: solid 1px black; 
+	   }
+	  
     </style>
-    <h2>Hello [[prop1]]</h2>
+	
+	<app-location route="{{route}}"></app-location>
+    <app-route
+        route="{{route}}"
+        pattern="/:page"
+        data="{{routeData}}"
+        tail="{{subroute}}"></app-route>
+	
+	<div id="head">
+		<h2>Список покупок</h2>
+	</div>	
+	
+	<iron-pages id="pages" class="blockHelp"
+        role="main"
+        selected="[[routeData.page]]"
+        selected-attribute="active"
+        attr-for-selected="name"
+        fallback-selection="launch">
+      <!--launch-screen id="ls" name="launch"
+          subroute="[[subroute]]"></launch-screen>
+      <chat-screen name="chat"
+          subroute="[[subroute]]"></chat-screen-->
+    </iron-pages>
+	
+	<div id="inp">
+		<paper-button id="pb" toggles raised class="green" on-tap="testDB">test open db</paper-button>
+		<paper-button toggles raised class="green" on-tap="testReq">test get db</paper-button>
+		<paper-button toggles raised class="green" on-tap="testAdd">test add value
+		</paper-button>
+		
+	</div>
+	
+	<paper-input id="variable" label="variable"></paper-input>
+	
+	<br>
+	Test db 
+	<div id="testdb">
+	
+	</div>
+	<br><br><br>
+	<!--iron-ajax url="data.json" last-response="{{data}}" auto></iron-ajax-->
+	  <!--iron-list items="[[shows]]" as="item">
+		<template>
+		  <div>
+			Name: [[item.name]]
+		  </div>
+		</template>
+	  </iron-list-->
+	  !
+	  <paper-listbox>
+                <template is='dom-repeat' items='{{ shows }}'>
+                    <!-- Create an individual task -->
+                    <paper-item>
+                         {{ item.name }}
+                 
+                    </paper-item>
+                </template>
+            </paper-listbox>
+			
+	<br><br><br>
+	<paper-toolbar>
+            <span class="title"> My Tasks </span>
+        </paper-toolbar>
+	
+	<br><br><br>
+	<div class="block1">
+	Переменные:
+	<br><br>	
+	prop1 = "[[prop1]]"
+	</div>
+    
   </template>
 
-  <script>
+  <script>  
+  
+  
     Polymer({
 
       is: 'show-app',
@@ -20,8 +145,184 @@
           type: String,
           value: 'show-app',
         },
+		
+		testItem: {
+          type: String,
+          value: function() {
+            return "5";
+          },
+		  
+        },
+		
+		shows: {
+          type: Array,
+          value:[
+               { name: 'All', subroute: 'all', q: '' },
+               { name: 'Polycasts', subroute: 'polycast', q: 'polycasts' },
+               { name: 'Totally Tooling Tips', subroute: 'tips', q: 'totally tooling' },
+               { name: 'A11ycasts', subroute: 'a11ycasts', q: 'a11ycasts' },
+               { name: 'Supercharged', subroute: 'supercharged', q: 'supercharged' }
+             ]
+          
+        },
+      },
+	  
+	  
+	  
+	   testDB: function(e) {
+		this.prop1="34567890-oij";
+		
+		/*
+		//window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+		//window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
+		window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
+		//if (!window.indexedDB) {
+		if (!indexedDB) {
+			window.alert("Ваш браузер не поддерживат стабильную версию IndexedDB. Такие-то функции будут недоступны");
+		}//else 	window.alert("success");
+		
+		
+		// This is what our customer data looks like.
+		/*const customerData = [
+		  { ssn: "444-44-4444", name: "Bill", age: 35, email: "bill@company.com" },
+		  { ssn: "555-55-5555", name: "Donna", age: 32, email: "donna@home.org" }
+		];
+		const dbName = "the_name";
+
+		var request = indexedDB.open(dbName, 2);
+
+		request.onerror = function(event) {
+		  // Handle errors.
+		  alert("бд не создана");
+		};
+		request.onsuccess = function(event) {
+		  db = event.target.result;
+		  //window.alert("success");
+		};
+		request.onupgradeneeded = function(event) {
+		  var db = event.target.result;
+
+		  // Create an objectStore to hold information about our customers. We're
+		  // going to use "ssn" as our key path because it's guaranteed to be
+		  // unique.
+		  var objectStore = db.createObjectStore("customers", { keyPath: "ssn" });
+
+		  // Create an index to search customers by name. We may have duplicates
+		  // so we can't use a unique index.
+		  objectStore.createIndex("name", "name", { unique: false });
+
+		  // Create an index to search customers by email. We want to ensure that
+		  // no two customers have the same email, so use a unique index.
+		  objectStore.createIndex("email", "email", { unique: true });
+
+		  // Store values in the newly created objectStore.
+		  for (var i in customerData) {
+			objectStore.add(customerData[i]);
+		  }
+		};*/
+		
+	/*	var str = "";
+		 request.result.name;
+		for (var i in customerData) {
+	
+		str  = str + customerData[i] +"   ";
+		}
+		document.getElementById('testdb').innerHTML = str;*/
       },
 
+	  testReq: function(e){
+	 console.log("Req");
+	  // Start a new transaction
+		var db = open.result;
+		var tx = db.transaction("MyObjectStore", "readwrite");
+		var store = tx.objectStore("MyObjectStore");
+		var index = store.index("NameIndex");
+
+		
+		// Query the data
+		var getJohn = store.get(1);
+		var getBob = index.get(["Smith", "Bob"]);
+
+		getJohn.onsuccess = function() {
+			console.log(getJohn.result.name.first);  // => "John"
+		};
+
+		getBob.onsuccess = function() {
+			console.log(getBob.result.name.first);   // => "Bob"
+		};
+
+
+	  },
+	  
+	  testAdd: function(e){
+		console.log("Add");
+		// Start a new transaction
+		var db = open.result;
+		var tx = db.transaction("MyObjectStore", "readwrite");
+		var store = tx.objectStore("MyObjectStore");
+		var index = store.index("NameIndex");
+
+		// Add some data
+		store.put({id: ind, name: {first: this.$.variable.value, last: "Doe"}, age: 42});
+		
+
+	  }
+	  
+	  
     });
+	
+	var ind = 1;
+	
+	var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+	var IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
+	
+	/*
+	const customerData = [
+		  { ssn: "444-44-4444", name: "Bill", age: 35, email: "bill@company.com" },
+		  { ssn: "555-55-5555", name: "Donna", age: 32, email: "donna@home.org" }
+		];
+	const dbName = "the_name";*/
+
+	//var request = indexedDB.open(dbName, 2);
+
+	var open = indexedDB.open("MyDatabase", 1);
+
+	// Create the schema
+	open.onupgradeneeded = function() {
+		var db = open.result;
+		var store = db.createObjectStore("MyObjectStore", {keyPath: "id"});
+		var index = store.createIndex("NameIndex", ["name.last", "name.first"]);
+	};
+
+	open.onsuccess = function() {
+		// Start a new transaction
+		var db = open.result;
+		var tx = db.transaction("MyObjectStore", "readwrite");
+		var store = tx.objectStore("MyObjectStore");
+		var index = store.index("NameIndex");
+
+		// Add some data
+		store.put({id: 12345, name: {first: "John", last: "Doe"}, age: 42});
+		store.put({id: 67890, name: {first: "Bob", last: "Smith"}, age: 35});
+		
+		// Query the data
+		var getJohn = store.get(12345);
+		var getBob = index.get(["Smith", "Bob"]);
+
+		getJohn.onsuccess = function() {
+			console.log(getJohn.result.name.first);  // => "John"
+		};
+
+		getBob.onsuccess = function() {
+			console.log(getBob.result.name.first);   // => "Bob"
+		};
+
+		// Close the db when the transaction is done
+		/*tx.oncomplete = function() {
+			db.close();
+		};*/
+	}
+
+	
   </script>
 </dom-module>
