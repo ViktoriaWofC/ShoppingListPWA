@@ -10,6 +10,9 @@
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html"/>
 <link rel="import" href="../../bower_components/paper-item/paper-item.html"/>
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html"/>
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html"/>
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html"/>
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html"/>
 
 
 <dom-module id="category-screen">
@@ -66,6 +69,13 @@
 		overflow-x: scroll; /* прокрутка по горизонтали */
 		overflow-y: scroll; /* прокрутка по вертикали */
 		}
+		
+		#fab { 
+		bottom: 20px;
+		right:20 px;
+		position: relative;
+		 
+	   }
 	  
     </style>
 	
@@ -80,27 +90,75 @@
 		Список категорий
 	</div>	
 	
-	<div class="prokrutka">
-	  <paper-listbox>
-                <template is='dom-repeat' items='{{ array }}'>
+	<!--div class="prokrutka"-->
+	<div>
+	  <div>
+            <!-- Create a list of tasks -->
+            <paper-listbox>
+                <template is='dom-repeat' items='{{ listItems }}'>
                     <!-- Create an individual task -->
                     <paper-item>
-                         {{ item.name }}
-                 
+						<iron-icon icon="star"></iron-icon>
+                        <paper-checkbox checked='{{ item.isComplete }}'
+                            class='flex-11 taskBox' on-change='toggleRecord'>
+                                {{ item.categoryName }}    
+                        </paper-checkbox>  
+						<paper-icon-button
+                            icon='create'
+                            class='flex-1'
+                            style='color: gray'
+                            on-click='showEditRecordDialog'>
+                        </paper-icon-button>  						
+                        <paper-icon-button
+                            icon='delete'
+                            class='flex-1'
+                            style='color: gray'
+                            on-click='deleteRecord'>
+                        </paper-icon-button>                    
                     </paper-item>
                 </template>
-            </paper-listbox>	
-	</div>			
+            </paper-listbox>
+ 
+            <!-- Create a floating action button -->
+			
+			
+			<paper-button toggles raised class="green" on-tap="updateRecords">print DB</paper-button>
+			
 	
-	<br><br>
-	<paper-button toggles raised class="green" on-tap="testAdd">test add value
-		</paper-button><br>
-		<paper-button toggles raised class="green" on-tap="testReq">test get db</paper-button>
-	<div class="block1">
-	Переменные:
-	<br><br>	
-	prop1 = "[[prop1]]"
-	</div>
+ 
+            <!-- Create a modal dialog -->
+            <paper-dialog id='addRecordDialog' modal>
+                <paper-input label='Имя категории' value='{{ latestCategoryName }}'>
+                </paper-input>
+                <div class='buttons'>
+                    <paper-button dialog-dismiss>Отмена</paper-button>
+                    <paper-button on-click='addRecord'>Добавить</paper-button>
+                </div>
+            </paper-dialog>
+			
+			<paper-dialog id='editRecordDialog' modal>
+                <paper-input label='Имя категории' value='{{ editCategoryName }}'>
+                </paper-input>
+                <div class='buttons'>
+                    <paper-button dialog-dismiss>Отмена</paper-button>
+                    <paper-button on-click='editRecord'>Сохранить</paper-button>
+                </div>
+            </paper-dialog>
+			
+        </div>	
+		
+		
+	</div>	
+	
+	<div id="fab">
+            <paper-fab icon='add' 
+                       style='position:fixed; bottom: 30px; right:24px'
+                       on-click='showAddRecordDialog'>
+			</paper-fab>
+	</div>	
+
+
+	
     
   </template>
 
@@ -115,180 +173,344 @@
         prop1: {
           type: String,
           value: 'show-app',
-        },
+        },	
 		
-		testItem: {
-          type: String,
-          value: function() {
-            return "5";
-          },
+		listItems: {
+          type: Array,
+          value: [],
+        },		
+
 		  
         },
-		
-		shows: {
-          type: Array,
-          value:[
-               { name: 'All'},
-               { name: 'Polycasts'}
-             ]
-          
-        },
-      },
+
 	  
-	  ready: function() {
-		this.array=[{name: "qwdsdwsd"},{name: "123123"}];
-			this.updateTasks();
+		ready: function() {
+			this.listItems = [];
+			this.latestCategoryName = "";
+			this.updateR();
 			//localStorage.clear();
 		},
+		
+		showAddRecordDialog: function() {
+		this.latestCategoryName = "";
+			this.$.addRecordDialog.open();
+		},
+		
+		showEditRecordDialog: function(e) {
+			this.$.editRecordDialog.open();
+			this.editCategoryName = e.model.item.categoryName;
+			this.latestCategoryName = e.model.item.categoryName;
+		},
+		
+		addRecord: function() {
+		//help.splice(0, help.length);
+			// Сохранение новой невыполненной задачи
+			//localStorage.setItem(this.latestCategoryName, 'no');
+			var db = openCategory.result;
+			var tx = db.transaction("MyObjectStore", "readwrite");
 
+			var store = tx.objectStore("MyObjectStore");
 
-	  testReq: function(e){
-	 console.log("Req");
-	  
-
-	  },
-	  
-	  testAdd: function(e){
-		console.log("Add");
-		
-		
-				
-		
-		
-		var i = array.length-1;
-		var j = this.shows.length-1;
-			console.log(this.shows[j]);
-			//console.log(array[i]);
-			console.log(j);
-			
-
-	  },
-	  
-	  updateTasks: function() {
-			// Очистка массива
-		//this.splice('array', 0);
-			
-			// Start a new transaction
-		var db = open.result;
-		var tx = db.transaction("MyObjectStore", "readwrite");
-		var store = tx.objectStore("MyObjectStore");
-		var index = store.index("NameIndex");		
-		
-		index.openCursor().onsuccess = function(event) {
-		var cursor = event.target.result;
-		if(cursor) {
-		  console.log("cursor: "+cursor.value.id +" "+cursor.value.name.first +" "+ cursor.value.name.last +" "+cursor.value.age);  
-		var task = {
-					name: cursor.value.name.first
-				};
-					arrayT.push(task);//
-					//this.push('array', task);
-		
-		//array.push({name:cursor.value.name.first});
-		  cursor.continue();
-		} else {
-		  console.log('Entries all displayed.');
-		  array = [];
-			for(i = 0; i< arrayT.length; i++){
-					console.log("arrayT: "+arrayT[i].name);  
-					var task = {
-					name: arrayT[i].name
-				};
-				
-					array.push(task); 
-					//this.push('array', task);
-					console.log("array "+array[array.length-1].name);  
-				}		  
-		}
-	  };
-
-				
+			ind = ind +1;
+			console.log("ind: "+ind);
+			// Add some data
+			store.put({id: ind, categoryName: this.latestCategoryName,isComplete: false	});
+			help.push({id: ind, categoryName: this.latestCategoryName,isComplete: false});
+			//this.push('listItems', {id: ind, categoryName: this.latestCategoryName,isComplete: false});
 		 
+			// Сброс latestCategoryName
+			this.latestCategoryName="";
+		 
+			// Закрытие диалога
+			this.$.addRecordDialog.close();
+		 		 
+		 
+			// Обновление списка задач
+			this.updateRecords();
+			//this.updateR();
+		},
+		
+		toggleRecord: function(e) {
+			// Получение имени задачи
+			var categoryName = e.model.item.categoryName;
+		 
+			var compl;
+			
+			var inde = help.findIndex(function(o){
+				 return o.categoryName === categoryName;
+			})
+			//help.splice(index, 1);
+			/*var indT = this.listItems.findIndex(function(o){
+				 return o.categoryName === categoryName;
+			})*/
+			// Конвертация
+			if(e.model.item.isComplete){
+				compl = true;//'yes';
+				help[inde].isComplete = true;//'yes';
+				}
+			else{
+				compl = false;//'no';
+				help[inde].isComplete = false;//'no';
+				}
+				
+			var db = openCategory.result;
+			var tx = db.transaction("MyObjectStore", "readwrite");
+
+			var store = tx.objectStore("MyObjectStore");
+			
+			var index2 = store.index("categoryName");	
+			
+			var objectStoreRequest = index2.get(categoryName);
+						
+			
+			  objectStoreRequest.onsuccess = function(event) {
+				console.log("---------------------------------------");
+				console.log("toogle: "+ categoryName + " complete "+ compl);
+				var data = objectStoreRequest.result;
+				data.isComplete = compl;
+				
+				var updateRequest = store.put(data);
+				updateRequest.onsuccess = function() {
+					console.log("update");
+				  };
+
+				
+			  };
+			  
+			  //help.splice(0, help.length);
+			  
+			  this.updateRecords();
+			
+		},
+
+		editRecord: function() {
+			// Получение имени задачи
+			var categoryName = this.editCategoryName;//e.model.item.categoryName;
+			var latestCategoryName = this.latestCategoryName;
+			console.log("category name: "+categoryName);
+			
+			var inde = help.findIndex(function(o){
+				 return o.categoryName === latestCategoryName;
+			})
+			//help.splice(index, 1);
+			/*var indT = this.listItems.findIndex(function(o){
+				 return o.categoryName === latestCategoryName;
+			})*/
+			
+			
+			var db = openCategory.result;
+			var tx = db.transaction("MyObjectStore", "readwrite");
+
+			var store = tx.objectStore("MyObjectStore");
+			
+			var index2 = store.index("categoryName");	
+			
+			var objectStoreRequest = index2.get(latestCategoryName);
+						
+			
+			  objectStoreRequest.onsuccess = function(event) {
+				console.log("---------------------------------------");
+				console.log("edit: '"+ latestCategoryName + "' to '"+ categoryName+"'");
+				var data = objectStoreRequest.result;
+				data.categoryName = categoryName;
+				
+				var updateRequest = store.put(data);
+				updateRequest.onsuccess = function() {
+					console.log("edit");
+				  };
+
+				
+			  };
+			  help[inde].categoryName = categoryName;
+			  
+			  // Закрытие диалога
+			 this.$.editRecordDialog.close();
+			  
+			  //help.splice(0, help.length);
+			  
+			  this.updateRecords();
+			  
+			  console.log("edit");
 			
 		},
 		
+		deleteRecord: function(e) {
+			var categoryName = e.model.item.categoryName;
+			//localStorage.removeItem(taskName);
+			
+			var db = openCategory.result;
+			var tx = db.transaction("MyObjectStore", "readwrite");
 
-	  
-	  
+			var store = tx.objectStore("MyObjectStore");
+			
+			var index2 = store.index("categoryName");
+			var key = e.model.item.id;
+
+			  
+			var objectStoreRequest = store.delete(key);
+			
+			var index = help.findIndex(function(o){
+				 return o.categoryName === categoryName;
+			})
+			help.splice(index, 1);
+			
+			
+			  objectStoreRequest.onsuccess = function(event) {
+			  console.log("---------------------------------------");
+			  console.log("categoryName: "+ categoryName);
+			  console.log("key: "+ key);
+				// report the success of our delete operation
+				console.log("delete");
+				
+			  };
+	
+			
+			// Обновление списка задач
+			this.updateRecords();
+		},
+		
+		updateRecords: function() {
+		console.log("---------------------------------------");
+			// Очистка массива
+			this.splice('listItems', 0);
+			//help.splice(0, help.length);
+			
+			this.listItems = [];
+			
+			
+			var db = openCategory.result;
+			var tx = db.transaction("MyObjectStore", "readwrite");
+			var store = tx.objectStore("MyObjectStore");
+			var index2 = store.index("categoryName");
+			
+			index2.openCursor().onsuccess = function(event) {
+				
+				cursor = event.target.result;
+				if(cursor) {
+				  var category = {
+					id: cursor.value.id,
+					categoryName: cursor.value.categoryName,
+					isComplete: cursor.value.isComplete
+				};
+			
+
+				console.log("cursor: "+cursor.value.id+" "+cursor.value.categoryName+" "+cursor.value.isComplete);
+				
+				//help.push(category);
+				
+				//console.log(ww[ww.length-1]);
+				//tasks.push(category);
+					//this.push('tasks', task);
+				  cursor.continue();
+				} else {
+				  //console.log('Entries all displayed.');
+
+						
+				}
+			  };
+			  
+			  help.sort(function(a, b) {
+				return a.id - b.id;
+				});
+			  
+			  this.updateR();
+		},
+		
+		updateR: function() {
+			// Очистка массива
+			this.splice('listItems', 0);
+			
+			
+
+			
+			for(i = 0; i< help.length;i++){
+				var category = {
+					id: help[i].id,
+					categoryName: help[i].categoryName,
+					isComplete: help[i].isComplete
+				};
+
+				
+				//this.tasks = [];
+				//this.tasks.push(task);
+					this.push('listItems', category);
+					//console.log(ww[i]);
+			
+			}
+
+			
+			
+		},
+
+		clearList: function() {
+			help.splice(0, help.length);
+		},
+		
     });
 	
+	var ind = 0;
 	
-	
-	var ind = 1;
-	var arrayT = [];
-	//array.push({name:ind+" t"});
-		//this.shows.push({name:ind+" t"});
-	
-	//var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
-	//var IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
-	
-	//var open = indexedDB.open("MyDatabase", 1);
-	//var open = indexedDB.open("Categiries", 1);
+	var cursor;
 	
 	var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
 
 	// Open (or create) the database
-	var open = indexedDB.open("Data3", 1);
+	var openCategory = indexedDB.open("Data7", 1);
 
 	// Create the schema
-	open.onupgradeneeded = function() {
-		var db = open.result;
+	openCategory.onupgradeneeded = function() {
+		var db = openCategory.result;
 		var store = db.createObjectStore("MyObjectStore", {keyPath: "id"});
-		//var index = store.createIndex("NameIndex", ["name.last", "name.first"]);
-		var index = store.createIndex("NameIndex", "name.last");
-		var index2 = store.createIndex("NameInd", "id");
+		var index2 = store.createIndex("categoryName", "categoryName");
 	};
+	
 
-	open.onsuccess = function() {
+	var help = [];
+	
+	openCategory.onsuccess = function() {
 		// Start a new transaction
-		var db = open.result;
+		var db = openCategory.result;
 		var tx = db.transaction("MyObjectStore", "readwrite");
+
 		var store = tx.objectStore("MyObjectStore");
-		var index = store.index("NameIndex");
-		var index2 = store.index("NameInd");
+		var index2 = store.index("categoryName");
+			
+		index2.openCursor().onsuccess = function(event) {
+			
+			cursor = event.target.result;
+			if(cursor) {
+			  var category = {
+				id: cursor.value.id,
+				categoryName: cursor.value.categoryName,
+				isComplete: cursor.value.isComplete
+			};
+			
+			if(ind<cursor.value.id) ind = cursor.value.id;
+			//document.getElementById("category-screen").listItems = [];
+			//document.getElementById("category-screen").listItems.push(category);
+			help.push(category);
+			//console.log(help[help.length-1]);
+			console.log("cursor: "+cursor.value.id+" "+cursor.value.categoryName+" "+cursor.value.isComplete);
+				//this.push('listItems', category);
+			  cursor.continue();
+			} else {
+			  //console.log('Entries all displayed.');
+			  //ind = help[help.length-1].id;
+			  //ind = Math.max.apply(Math,help.map(function(o){return o.id;}))
+			  //ind = ind+1;
+			  console.log("ind: "+ind);
+			  //init();
 
-		// Add some data
-		store.put({id: 12345, name: {first: "John", last: "Doe"}, age: 42});
-		store.put({id: 67890, name: {first: "Bob", last: "Smith"}, age: 35});
-		store.put({id: 67490, name: {first: "Bobyyyy", last: "Smith"}, age: 35});
-		
-		// Query the data
-		var getJohn = store.get(12345);
-		var getBob = index.get("Smith");
-		//var getBob = index.get(["Smith", "Bob"]);
-		var getI = index2.get(12345);
+			}
+		};
+			
+			
 
-		getJohn.onsuccess = function() {
-			console.log(getJohn.result.name.first);  // => "John"
-		};
-
-		getBob.onsuccess = function() {
-			console.log(getBob.result.name.first+" "+getBob.result.name.last);   // => "Bob"
-		};
+			
+			
 		
-		getI.onsuccess = function() {
-			console.log(getI.result.name.first);   // => "Bob"
-		};
-		
-		
-		index.openCursor("Smith").onsuccess = function(event) {
-		//console.log("cursor:");
-		var cursor = event.target.result;
-		if(cursor) {
-		  //console.log(cursor.value.id +" "+cursor.value.name.first +" "+ cursor.value.name.last +" "+cursor.value.age);  
-		arrayT.push({name:cursor.value.name.first});
-		  cursor.continue();
-		} else {
-		  //console.log('Entries all displayed.');
-		/*for(i = 0; i< array.length; i++){
-					console.log(arrayT[i].name);  
-				}	  */
-		}
 	  };
-
-		
-		
-	}
+	
 	
 	
 
