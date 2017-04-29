@@ -76,6 +76,11 @@
 		position: relative;
 		 
 	   }
+	   
+	    paper-fab.red {
+			--paper-fab-background: rgba(65, 0, 0, 1);
+			--paper-fab-keyboard-focus-background: var(--paper-light-blue-900);
+		  }
 	  
     </style>
 	
@@ -86,9 +91,9 @@
         data="{{routeData}}"
         tail="{{subroute}}"></app-route>
 	
-	<div id="head">
+	<!--div id="head">
 		Список категорий
-	</div>	
+	</div-->	
 	
 	<!--div class="prokrutka"-->
 	<div>
@@ -99,9 +104,11 @@
                     <!-- Create an individual task -->
                     <paper-item>
 						<iron-icon icon="star"></iron-icon>
-                        <paper-checkbox checked='{{ item.isComplete }}'
-                            class='flex-11 taskBox' on-change='toggleRecord'>
+                        <!--paper-checkbox checked='{{ item.isComplete }}'
+                            class='flex-11 taskBox' on-change='toggleRecord'-->
+							<div style='margin-left:10px ;margin-right:20px'>
                                 {{ item.categoryName }}    
+							</div>
                         </paper-checkbox>  
 						<paper-icon-button
                             icon='create'
@@ -113,7 +120,7 @@
                             icon='delete'
                             class='flex-1'
                             style='color: gray'
-                            on-click='deleteRecord'>
+                            on-click='showDeleteRecordDialog'>
                         </paper-icon-button>                    
                     </paper-item>
                 </template>
@@ -122,12 +129,13 @@
             <!-- Create a floating action button -->
 			
 			
-			<paper-button toggles raised class="green" on-tap="updateRecords">print DB</paper-button>
+			<!--paper-button toggles raised class="green" on-tap="updateRecords">print DB</paper-button-->
 			
 	
  
             <!-- Create a modal dialog -->
             <paper-dialog id='addRecordDialog' modal>
+				<H4>Добавить категорию</H4>
                 <paper-input label='Имя категории' value='{{ latestCategoryName }}'>
                 </paper-input>
                 <div class='buttons'>
@@ -137,11 +145,24 @@
             </paper-dialog>
 			
 			<paper-dialog id='editRecordDialog' modal>
+				<H4>Редактировать категорию</H4>
                 <paper-input label='Имя категории' value='{{ editCategoryName }}'>
                 </paper-input>
                 <div class='buttons'>
                     <paper-button dialog-dismiss>Отмена</paper-button>
                     <paper-button on-click='editRecord'>Сохранить</paper-button>
+                </div>
+            </paper-dialog>
+			
+			<paper-dialog id='deleteRecordDialog' modal>
+				<H4>Удалить категорию вместе с соответсвующими покупками?</H4>
+				<div style='text-indent:10px;'>
+                Имя категории: {{ latestCategoryName }}
+				</div>
+                </paper-input>
+                <div class='buttons'>
+                    <paper-button dialog-dismiss>Отмена</paper-button>
+                    <paper-button on-click='deleteRecord'>Да</paper-button>
                 </div>
             </paper-dialog>
 			
@@ -151,7 +172,7 @@
 	</div>	
 	
 	<div id="fab">
-            <paper-fab icon='add' 
+            <paper-fab icon='add' class="red"
                        style='position:fixed; bottom: 30px; right:24px'
                        on-click='showAddRecordDialog'>
 			</paper-fab>
@@ -199,6 +220,11 @@
 		showEditRecordDialog: function(e) {
 			this.$.editRecordDialog.open();
 			this.editCategoryName = e.model.item.categoryName;
+			this.latestCategoryName = e.model.item.categoryName;
+		},
+		
+		showDeleteRecordDialog: function(e) {
+			this.$.deleteRecordDialog.open();
 			this.latestCategoryName = e.model.item.categoryName;
 		},
 		
@@ -335,19 +361,21 @@
 		},
 		
 		deleteRecord: function(e) {
-			var categoryName = e.model.item.categoryName;
+			var categoryName = this.latestCategoryName;
 			//localStorage.removeItem(taskName);
+					
 			
+			//категории
 			var db = openCategory.result;
 			var tx = db.transaction("MyObjectStore", "readwrite");
-
-			var store = tx.objectStore("MyObjectStore");
-			
+			var store = tx.objectStore("MyObjectStore");			
 			var index2 = store.index("categoryName");
-			var key = e.model.item.id;
-
+			
+			var key = this.listItems.findIndex(function(o){
+				 return o.categoryName === categoryName;
+			})
 			  
-			var objectStoreRequest = store.delete(key);
+			var objectStoreRequest = store.delete(this.listItems[key].id);
 			
 			var index = help.findIndex(function(o){
 				 return o.categoryName === categoryName;
@@ -356,15 +384,15 @@
 			
 			
 			  objectStoreRequest.onsuccess = function(event) {
-			  console.log("---------------------------------------");
-			  console.log("categoryName: "+ categoryName);
-			  console.log("key: "+ key);
-				// report the success of our delete operation
-				console.log("delete");
+				  console.log("---------------------------------------");
+				  console.log("categoryName: "+ categoryName);
+				  console.log("key: "+ key);
+					// report the success of our delete operation
+					console.log("delete");
 				
 			  };
 	
-			
+			this.$.deleteRecordDialog.close();
 			// Обновление списка задач
 			this.updateRecords();
 		},
@@ -376,6 +404,8 @@
 			//help.splice(0, help.length);
 			
 			this.listItems = [];
+			
+			var test = [];
 			
 			
 			var db = openCategory.result;
@@ -396,6 +426,7 @@
 
 				console.log("cursor: "+cursor.value.id+" "+cursor.value.categoryName+" "+cursor.value.isComplete);
 				
+				test.push(category);
 				//help.push(category);
 				
 				//console.log(ww[ww.length-1]);
@@ -404,7 +435,7 @@
 				  cursor.continue();
 				} else {
 				  //console.log('Entries all displayed.');
-
+				  console.log("-----test len: "+test.length);
 						
 				}
 			  };
@@ -413,15 +444,13 @@
 				return a.id - b.id;
 				});
 			  
-			  this.updateR();
+			  this.updateR(test);
 		},
 		
-		updateR: function() {
+		updateR: function(test) {
+			//console.log("test len updateR: "+test.length);
 			// Очистка массива
 			this.splice('listItems', 0);
-			
-			
-
 			
 			for(i = 0; i< help.length;i++){
 				var category = {
@@ -434,7 +463,7 @@
 				//this.tasks = [];
 				//this.tasks.push(task);
 					this.push('listItems', category);
-					//console.log(ww[i]);
+					//console.log("!! "+listItems[listItems.length-1].id);
 			
 			}
 

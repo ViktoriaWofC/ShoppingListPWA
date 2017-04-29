@@ -13,6 +13,7 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html"/>
 <link rel="import" href="../../bower_components/paper-fab/paper-fab.html"/>
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html"/>
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html"/>
 
 
 <dom-module id="shopping-list-screen">
@@ -76,6 +77,11 @@
 		position: relative;
 		 
 	   }
+	   
+	   paper-fab.red {
+			--paper-fab-background: rgba(65, 0, 0, 1);
+			--paper-fab-keyboard-focus-background: var(--paper-light-blue-900);
+		  }
 	  
     </style>
 	
@@ -86,9 +92,9 @@
         data="{{routeData}}"
         tail="{{subroute}}"></app-route>
 	
-	<div id="head">
+	<!--div id="head">
 		Список покупок
-	</div>	
+	</div-->	
 	
 	<!--div class="prokrutka"-->
 	<div>
@@ -100,7 +106,15 @@
                     <paper-item>
                         <paper-checkbox checked='{{ item.isComplete }}'
                             class='flex-11 taskBox' on-change='toggleRecord'>
-                                {{ item.categoryName }}    
+							<div style='margin-left:10px ;margin-right:20px'>
+                                {{ item.itemName }} 
+								<br>								
+								<div style='font-sizesize:2; color:gray;'>
+									Категория:   {{ item.categoryName }}  
+								</div>
+							</div>
+							
+                                  
                         </paper-checkbox>  
 						<paper-icon-button
                             icon='create'
@@ -121,14 +135,26 @@
             <!-- Create a floating action button -->
 			
 			
-			<paper-button toggles raised class="green" on-tap="updateRecords">print DB</paper-button>
+			<!--paper-button toggles raised class="green" on-tap="updateRecords">print DB</paper-button-->
 			
 	
  
             <!-- Create a modal dialog -->
             <paper-dialog id='addRecordDialog' modal>
-                <paper-input label='Имя категории' value='{{ latestCategoryName }}'>
+				<H4>Добавить покупку</H4>
+                <paper-input label='Имя покупки' value='{{ latestItemName }}'>
                 </paper-input>
+				<paper-dropdown-menu label="Категория">
+				  <paper-listbox id="selectCateg" class="dropdown-content" selected="0">
+					<template is='dom-repeat' items='{{ categoryList }}'>
+							<!-- Create an individual task -->
+							<paper-item>
+										{{ item.categoryName }}  
+					   
+							</paper-item>
+						</template>
+				  </paper-listbox>
+				</paper-dropdown-menu>
                 <div class='buttons'>
                     <paper-button dialog-dismiss>Отмена</paper-button>
                     <paper-button on-click='addRecord'>Добавить</paper-button>
@@ -136,21 +162,34 @@
             </paper-dialog>
 			
 			<paper-dialog id='editRecordDialog' modal>
-                <paper-input label='Имя категории' value='{{ editCategoryName }}'>
+				<H4>Редактировать покупку</H4>
+                <paper-input label='Имя покупки' value='{{ editItemsName }}'>
                 </paper-input>
+				<paper-dropdown-menu label="Категория">
+				  <paper-listbox id="editCateg" class="dropdown-content" >
+					<template is='dom-repeat' items='{{ categoryList }}' selected="0">
+							<!-- Create an individual task -->
+							<paper-item>
+										{{ item.categoryName }} 			   
+							</paper-item>
+						</template>
+				  </paper-listbox>
+				</paper-dropdown-menu>
                 <div class='buttons'>
                     <paper-button dialog-dismiss>Отмена</paper-button>
                     <paper-button on-click='editRecord'>Сохранить</paper-button>
                 </div>
             </paper-dialog>
 			
+			
+			
         </div>	
-		
+	
 		
 	</div>	
 	
 	<div id="fab">
-            <paper-fab icon='add' 
+            <paper-fab icon='add' class="red"
                        style='position:fixed; bottom: 30px; right:24px'
                        on-click='showAddRecordDialog'>
 			</paper-fab>
@@ -172,6 +211,16 @@
         prop1: {
           type: String,
           value: 'show-app',
+        },	
+
+		categoryList: {
+          type: Array,
+          value: [],
+        },	
+
+		listItems: {
+          type: Array,
+          value: [],
         },		
 
 		  
@@ -180,44 +229,62 @@
 	  
 		ready: function() {
 			this.listItems = [];
+			this.latestItemName = "";
 			this.latestCategoryName = "";
 			this.updateR();
+			this.categoryList = [];
 			//localStorage.clear();
 		},
 		
 		showAddRecordDialog: function() {
-		this.latestCategoryName = "";
-			this.$.addRecordDialog.open();
+			this.latestItemName = "";
+			//this.latestCategoryName = "";
+			this.$.addRecordDialog.open();			
 		},
 		
 		showEditRecordDialog: function(e) {
 			this.$.editRecordDialog.open();
+			this.editItemsName = e.model.item.itemName;			
 			this.editCategoryName = e.model.item.categoryName;
+			this.latestItemName = e.model.item.itemName;
 			this.latestCategoryName = e.model.item.categoryName;
+			var editCategoryNum = this.categoryList.findIndex(function(o){
+				 return o.categoryName === e.model.item.categoryName;
+			})
+			//console.log("categoryName: "+ e.model.item.categoryName);
+			console.log("secect: "+ editCategoryNum);
+			this.$.editCateg.selected = ""+editCategoryNum;
 		},
 		
 		addRecord: function() {
 		//helpS.splice(0, helpS.length);
 			// Сохранение новой невыполненной задачи
-			//localStorage.setItem(this.latestCategoryName, 'no');
+			//localStorage.setItem(this.latestItemName, 'no');
 			var db = open.result;
 			var tx = db.transaction("MyObjectStore", "readwrite");
 
 			var store = tx.objectStore("MyObjectStore");
+			
+			var select = this.$.selectCateg.selected;
+			//console.log("secect: "+ select);
+			this.latestCategoryName = this.categoryList[select].categoryName;
 
 			ind = ind +1;
 			console.log("ind: "+ind);
+			//console.log("latestCategoryName: "+this.latestCategoryName);
 			// Add some data
-			store.put({id: ind, categoryName: this.latestCategoryName,isComplete: false	});
-			helpS.push({id: ind, categoryName: this.latestCategoryName,isComplete: false});
-			//this.push('listItems', {id: ind, categoryName: this.latestCategoryName,isComplete: false});
+			store.put({id: ind, itemName: this.latestItemName, categoryName: this.latestCategoryName,isComplete: false	});
+			helpS.push({id: ind, itemName: this.latestItemName, categoryName: this.latestCategoryName,isComplete: false});
+			//this.push('listItems', {id: ind, categoryName: this.latestItemName,isComplete: false});
 		 
-			// Сброс latestCategoryName
+			// Сброс latestItemName
+			this.latestItemName="";
 			this.latestCategoryName="";
 		 
 			// Закрытие диалога
+			
 			this.$.addRecordDialog.close();
-		 		 
+		 	this.$.selectCateg.selected = "0";	 
 		 
 			// Обновление списка задач
 			this.updateRecords();
@@ -226,16 +293,16 @@
 		
 		toggleRecord: function(e) {
 			// Получение имени задачи
-			var categoryName = e.model.item.categoryName;
+			var itemName = e.model.item.itemName;
 		 
 			var compl;
 			
 			var inde = helpS.findIndex(function(o){
-				 return o.categoryName === categoryName;
+				 return o.itemName === itemName;
 			})
 			//helpS.splice(index, 1);
 			/*var indT = this.listItems.findIndex(function(o){
-				 return o.categoryName === categoryName;
+				 return o.itemName === itemName;
 			})*/
 			// Конвертация
 			if(e.model.item.isComplete){
@@ -252,14 +319,14 @@
 
 			var store = tx.objectStore("MyObjectStore");
 			
-			var index2 = store.index("categoryName");	
+			var index2 = store.index("itemName");	
 			
-			var objectStoreRequest = index2.get(categoryName);
+			var objectStoreRequest = index2.get(itemName);
 						
 			
 			  objectStoreRequest.onsuccess = function(event) {
 				console.log("---------------------------------------");
-				console.log("toogle: "+ categoryName + " complete "+ compl);
+				console.log("toogle: "+ itemName + " complete "+ compl);
 				var data = objectStoreRequest.result;
 				data.isComplete = compl;
 				
@@ -279,16 +346,22 @@
 
 		editRecord: function() {
 			// Получение имени задачи
-			var categoryName = this.editCategoryName;//e.model.item.categoryName;
+			var itemName = this.editItemsName;//e.model.item.itemName;
+			var latestItemName = this.latestItemName;
+			//var categoryName = this.editCategoryName;
 			var latestCategoryName = this.latestCategoryName;
-			console.log("category name: "+categoryName);
+			
+			var select = this.$.editCateg.selected;
+			var categoryName = this.categoryList[select].categoryName;
+			//console.log("secect: "+ select);			
+			//console.log("category name: "+categoryName);
 			
 			var inde = helpS.findIndex(function(o){
-				 return o.categoryName === latestCategoryName;
+				 return o.itemName === latestItemName;
 			})
 			//helpS.splice(index, 1);
 			/*var indT = this.listItems.findIndex(function(o){
-				 return o.categoryName === latestCategoryName;
+				 return o.categoryName === latestItemName;
 			})*/
 			
 			
@@ -297,15 +370,16 @@
 
 			var store = tx.objectStore("MyObjectStore");
 			
-			var index2 = store.index("categoryName");	
+			var index2 = store.index("itemName");	
 			
-			var objectStoreRequest = index2.get(latestCategoryName);
+			var objectStoreRequest = index2.get(latestItemName);
 						
 			
 			  objectStoreRequest.onsuccess = function(event) {
 				console.log("---------------------------------------");
-				console.log("edit: '"+ latestCategoryName + "' to '"+ categoryName+"'");
+				console.log("edit: '"+ latestItemName + "' to '"+ itemName+"'");
 				var data = objectStoreRequest.result;
+				data.itemName = itemName;
 				data.categoryName = categoryName;
 				
 				var updateRequest = store.put(data);
@@ -315,6 +389,7 @@
 
 				
 			  };
+			  helpS[inde].itemName = itemName;
 			  helpS[inde].categoryName = categoryName;
 			  
 			  // Закрытие диалога
@@ -329,7 +404,7 @@
 		},
 		
 		deleteRecord: function(e) {
-			var categoryName = e.model.item.categoryName;
+			var itemName = e.model.item.itemName;
 			//localStorage.removeItem(taskName);
 			
 			var db = open.result;
@@ -337,21 +412,21 @@
 
 			var store = tx.objectStore("MyObjectStore");
 			
-			var index2 = store.index("categoryName");
+			var index2 = store.index("itemName");
 			var key = e.model.item.id;
 
 			  
 			var objectStoreRequest = store.delete(key);
 			
 			var index = helpS.findIndex(function(o){
-				 return o.categoryName === categoryName;
+				 return o.itemName === itemName;
 			})
 			helpS.splice(index, 1);
 			
 			
 			  objectStoreRequest.onsuccess = function(event) {
 			  console.log("---------------------------------------");
-			  console.log("categoryName: "+ categoryName);
+			  console.log("itemName: "+ itemName);
 			  console.log("key: "+ key);
 				// report the success of our delete operation
 				console.log("delete");
@@ -364,6 +439,8 @@
 		},
 		
 		updateRecords: function() {
+
+		
 		console.log("---------------------------------------");
 			// Очистка массива
 			this.splice('listItems', 0);
@@ -375,7 +452,7 @@
 			var db = open.result;
 			var tx = db.transaction("MyObjectStore", "readwrite");
 			var store = tx.objectStore("MyObjectStore");
-			var index2 = store.index("categoryName");
+			var index2 = store.index("itemName");
 			
 			index2.openCursor().onsuccess = function(event) {
 				
@@ -383,12 +460,12 @@
 				if(cursor) {
 				  var category = {
 					id: cursor.value.id,
-					categoryName: cursor.value.categoryName,
+					itemName: cursor.value.itemName,
 					isComplete: cursor.value.isComplete
 				};
 			
 
-				console.log("cursor: "+cursor.value.id+" "+cursor.value.categoryName+" "+cursor.value.isComplete);
+				console.log("cursor: "+cursor.value.id+" "+cursor.value.itemName+" "+cursor.value.categoryName+" "+cursor.value.isComplete);
 				
 				//helpS.push(category);
 				
@@ -420,6 +497,7 @@
 			for(i = 0; i< helpS.length;i++){
 				var category = {
 					id: helpS[i].id,
+					itemName: helpS[i].itemName,
 					categoryName: helpS[i].categoryName,
 					isComplete: helpS[i].isComplete
 				};
@@ -431,12 +509,100 @@
 					//console.log(ww[i]);
 			
 			}
-
 			
+		},
+		
+		updateAfterClick: function(categ) {
+			//categoryList = new Array();
+			console.log("categ length: "+categ.length);
+			//this.splice('listItems', 0);
+
+			this.splice('categoryList', 0);
+			for(i = 0; i< categ.length;i++){
+				var category = {
+					id: categ[i].id,
+					categoryName: categ[i].categoryName,
+					isComplete: categ[i].isComplete
+				};
+
+				
+				//this.tasks = [];
+				//this.tasks.push(task);
+				this.push('categoryList', category);
+					//console.log(ww[i]);
+					//console.log("categoryList: "+categoryList[categoryList.length-1].itemName);
+			
+			}
+			
+			for(i = 0; i< helpS.length;i++){
+				var index = categ.findIndex(function(o){
+					 return o.categoryName === helpS[i].categoryName;
+				})
+				console.log("index   : "+index);
+				
+				if(index ===-1){					
+				
+					helpS.splice(i,1);
+				}				
+	
+			}
+			
+			
+			
+			//del покупки
+			var db = open.result;
+			var tx = db.transaction("MyObjectStore", "readwrite");
+
+			var storeItem = tx.objectStore("MyObjectStore");
+			
+			var indexItem = storeItem.index("categoryName");
+			
+			var indexes = [];
+			
+			indexItem.openCursor().onsuccess = function(event) {
+				
+				cursor = event.target.result;
+				if(cursor) {
+				
+					var index = categ.findIndex(function(o){
+						 return o.categoryName === cursor.value.categoryName;
+					})
+					//console.log("catg name: "+cursor.value.categoryName+"  catg index: "+index);
+					//helpS.splice(index, 1);
+					if(index ===-1){
+						cursor.delete();
+					}
+				
+
+					//console.log("cursor: "+cursor.value.id+" "+cursor.value.categoryName+" "+cursor.value.isComplete);
+					
+					//help.push(category);
+					
+					//console.log(ww[ww.length-1]);
+					//tasks.push(category);
+						//this.push('tasks', task);
+					  cursor.continue();
+				} else {
+				  //console.log('Entries all displayed.');
+					console.log("indexes.length: "+indexes.length);
+					
+						
+				}
+			  };
+
+			  //document.getElementById("category")
+			
+			
+			//console.log("help2: "+categoryList[0].itemName);
+			this.updateRecords();
 			
 		},
 
     });
+	
+	var rep = 0;
+	
+	//var categoryList=[];
 	
 	var ind = 0;
 	
@@ -445,13 +611,14 @@
 	var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
 
 	// Open (or create) the database
-	var open = indexedDB.open("DataS2", 1);
+	var open = indexedDB.open("DataS29", 1);
 
 	// Create the schema
 	open.onupgradeneeded = function() {
 		var db = open.result;
 		var store = db.createObjectStore("MyObjectStore", {keyPath: "id"});
-		var index2 = store.createIndex("categoryName", "categoryName");
+		var index2 = store.createIndex("itemName", "itemName");
+		var index3 = store.createIndex("categoryName", "categoryName");
 	};
 	
 
@@ -463,7 +630,9 @@
 		var tx = db.transaction("MyObjectStore", "readwrite");
 
 		var store = tx.objectStore("MyObjectStore");
-		var index2 = store.index("categoryName");
+		var index2 = store.index("itemName");
+		
+		store.put({id: ind, itemName: "Test", categoryName: "",isComplete: false	});
 			
 		index2.openCursor().onsuccess = function(event) {
 			
@@ -471,7 +640,8 @@
 			if(cursor) {
 			  var category = {
 				id: cursor.value.id,
-				categoryName: cursor.value.categoryName,
+				itemName: cursor.value.itemName,
+				categoryName:cursor.value.categoryName,
 				isComplete: cursor.value.isComplete
 			};
 			
@@ -479,7 +649,7 @@
 			
 			helpS.push(category);
 			//console.log(helpS[helpS.length-1]);
-			console.log("cursor: "+cursor.value.id+" "+cursor.value.categoryName+" "+cursor.value.isComplete);
+			console.log("cursor: "+cursor.value.id+" "+cursor.value.itemName+" "+cursor.value.isComplete+" "+cursor.value.categoryName);
 				//this.push('listItems', category);
 			  cursor.continue();
 			} else {

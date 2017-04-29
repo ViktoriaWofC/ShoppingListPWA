@@ -32,13 +32,13 @@
 	  #head {
 		display: block;
         background-color: rgba(250, 112, 62, 1);
-		height:40px;
+		height:45px;
 		weight: 100px;
 		text-align:center;
-		line-height: 80px;
+		line-height: 90px;
 		color:white;
 		padding-bottom:20px;
-		margin-bottom:20px;
+		border-top: solid 1px black;
       }
 	  
 	  #tab {
@@ -48,6 +48,8 @@
 		padding-bottom:20px;
 		margin-bottom:20px;
       }
+	  
+	  
 	  
 	  #inp{
 		display: block;
@@ -74,14 +76,14 @@
 	   
 	   .blockHelp { 
 		background: rgba(250, 112, 62, 1);
-		border: solid 1px black; 
+
 	   }
 	   
 	   #fab { 
 		bottom: 50px;
 		right:50 px;
 		position: relative;
-		 
+		 background-color:rgba(230, 0, 38, 1);
 	   }
 	   
 	   .cont { 
@@ -97,10 +99,19 @@
 		overflow-y: auto; /* прокрутка по вертикали */
 		}
 		
+		paper-toolbar.red {
+		--paper-toolbar-background: rgba(230, 0, 38, 1);
+		--paper-toolbar-title: {
+		  font-weight: bold;
+		};
+	  }
 		
 		paper-tabs[no-bar] paper-tab.iron-selected {
-			color: #ffff8d;
+		--paper-tabs-selection-bar-color: rgba(230, 0, 38, 1);
+			color: rgba(230, 0, 38, 1);
 		  }
+		  
+		  
 		  
 		  #launch {
 		  position: fixed;
@@ -108,7 +119,7 @@
 		  left: 0;
 		  width: 100%;
 		  height: 100%;
-		  background: rgba(250, 112, 62, 1);
+		  background: white;
 		  line-height: 600px;
 		}
 		
@@ -120,7 +131,7 @@
     </style>
 	
 	<div align="center"   id = "launch" onclick="hide(this)">
-		<img src="1.jpg"  alt="изображение" style='vertical-align: middle;'/>
+		<img src="icon150.png"  alt="изображение" style='vertical-align: middle;'/>
 	</div>
 
 
@@ -133,9 +144,10 @@
         data="{{routeData}}"
         tail="{{subroute}}"></app-route>
 	
-	<div id="head">
-		<h2>Покупки</h2>
-	</div>	
+	<paper-toolbar class="red">
+            <div class="title"> Мои покупки </div>
+    </paper-toolbar>
+
 	
 	<!--iron-selector selected="[[show.subroute]]" attr-for-selected="name" selected-class="active">
           <template is="dom-repeat" items="[[shows]]" as="show">
@@ -148,9 +160,9 @@
 		<paper-button  on-tap=""	style='width:49.5%;margin:0px; '>Категории</paper-button>
 	</div-->
 	
-	<paper-tabs selected="0" no-bar style='background-color:rgba(205, 255, 173, 1); '>
-	  <paper-tab on-tap="clickTab1">Покупки</paper-tab>
-	  <paper-tab on-tap="clickTab2">Категории</paper-tab>
+	<paper-tabs no-bar  selected="0"  style = 'border-bottom: solid 2px rgba(230, 0, 38, 1);; '>
+	  <paper-tab id="tab1" on-tap="clickTab1">Покупки</paper-tab>
+	  <paper-tab id="tab2" on-tap="clickTab2">Категории</paper-tab>
 	</paper-tabs>
 	
 	<!--div class="prokrutka"-->
@@ -171,25 +183,10 @@
 	
 	<!--paper-input id="variable" label="variable"></paper-input-->
 	
-	<br>
- 
 
+	  <!--------------------------------------
+	  end-->
 
-	  --------------------------------------
-	  show-app
-
-
-
-	  			
-	<br><br><br>
-
-	
-	<br><br><br>
-	<!--div class="block1">
-	Переменные:
-	<br><br>	
-	prop1 = "[[prop1]]"
-	</div-->
 
 	</div>
     
@@ -228,7 +225,10 @@
 	  clickTab1: function() {
 		 console.log("t1");
 		 this.prop1 = "shopping-list";
-		 this.$.shopping.updateRecords();
+		 //this.$.shopping.updateRecords();
+		 //console.log("listItems length: "+document.getElementById("category").listItems.length);
+		 //document.getElementById("shopping").listItems.splice(0,document.getElementById("shopping").listItems.length);
+		 document.getElementById("shopping").updateAfterClick(document.getElementById("category").listItems);
 		},
 		
 		clickTab2: function() {
@@ -245,16 +245,19 @@
 			//this.$.body.style.display = 'block';
 			document.getElementById("body").style.display = 'block';
 			//this.$.body.style.height = "100%";
+			
+			//this.prop1 = "category";
+			document.getElementById("category").updateRecords();
+			console.log("listItems length: "+document.getElementById("category").listItems.length);
+			document.getElementById("shopping").updateAfterClick(document.getElementById("category").listItems);
 			document.getElementById("shopping").updateRecords();
+			//document.getElementById("shopping").updateRecords();
 		};
 	  
 	  /*var t= function() {
 			this.$.body.style.height = '0px';
 
 		};*/
-		
-
-
 
 	
   </script>
