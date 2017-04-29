@@ -1,0 +1,171 @@
+<html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+
+</head><body><dom-module id="category-screen">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+	  
+	  #head {
+		display: block;
+        background-color: rgba(205, 255, 173, 1);
+		height:30px;
+		weight: 100px;
+		text-align:center;
+		line-height: 20px;
+		color:black;
+		padding-top:10px;
+		margin-bottom:2px;
+      }
+	  
+	  #inp{
+		display: block;
+        <!--background-color: rgba(205, 255, 173, 1);-->
+		background-color:white;
+		height:200px;
+		width: 200px;
+		text-align:center;
+		color:black;
+		padding:10px;
+		margin: 0 auto;
+	  }
+	  
+	  .block1 { 
+		width: 800px; 
+		height: 100px;
+		background: rgba(205, 255, 173, 1);
+		padding: 5px;
+		padding-right: 20px; 
+		padding-bottom: 30px;
+		border: solid 1px black; 
+		float: left;
+	   }
+	   
+	   .blockHelp { 
+		background: rgba(205, 255, 173, 1);
+		border: solid 1px black; 
+	   }
+	   
+	   .prokrutka {
+		height:150px; /* высота нашего блока */
+		background: #fff; /* цвет фона, белый */
+		border: 1px solid #C1C1C1; /* размер и цвет границы блока */
+		overflow-x: scroll; /* прокрутка по горизонтали */
+		overflow-y: scroll; /* прокрутка по вертикали */
+		}
+		
+		#fab { 
+		bottom: 20px;
+		right:20 px;
+		position: relative;
+		 
+	   }
+	   
+	    paper-fab.red {
+			--paper-fab-background: rgba(65, 0, 0, 1);
+			--paper-fab-keyboard-focus-background: var(--paper-light-blue-900);
+		  }
+	  
+    </style>
+	
+	<app-location route="{{route}}"></app-location>
+    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
+	
+		
+	
+	
+	<div>
+	  <div>
+            
+            <paper-listbox>
+                <template is="dom-repeat" items="{{ listItems }}">
+                    
+                    <paper-item>
+						<iron-icon icon="star"></iron-icon>
+                        
+							<div style="margin-left:10px ;margin-right:20px">
+                                {{ item.categoryName }}    
+							</div>
+                          
+						<paper-icon-button icon="create" class="flex-1" style="color: gray" on-click="showEditRecordDialog">
+                        </paper-icon-button>  						
+                        <paper-icon-button icon="delete" class="flex-1" style="color: gray" on-click="showDeleteRecordDialog">
+                        </paper-icon-button>                    
+                    </paper-item>
+                </template>
+            </paper-listbox>
+ 
+            
+			
+			
+			
+			
+	
+ 
+            
+            <paper-dialog id="addRecordDialog" modal="">
+				<h4>Добавить категорию</h4>
+                <paper-input label="Имя категории" value="{{ latestCategoryName }}">
+                </paper-input>
+                <div class="buttons">
+                    <paper-button dialog-dismiss="">Отмена</paper-button>
+                    <paper-button on-click="addRecord">Добавить</paper-button>
+                </div>
+            </paper-dialog>
+			
+			<paper-dialog id="editRecordDialog" modal="">
+				<h4>Редактировать категорию</h4>
+                <paper-input label="Имя категории" value="{{ editCategoryName }}">
+                </paper-input>
+                <div class="buttons">
+                    <paper-button dialog-dismiss="">Отмена</paper-button>
+                    <paper-button on-click="editRecord">Сохранить</paper-button>
+                </div>
+            </paper-dialog>
+			
+			<paper-dialog id="deleteRecordDialog" modal="">
+				<h4>Удалить категорию вместе с соответсвующими покупками?</h4>
+				<div style="text-indent:10px">
+                Имя категории: {{ latestCategoryName }}
+				</div>
+                
+                <div class="buttons">
+                    <paper-button dialog-dismiss="">Отмена</paper-button>
+                    <paper-button on-click="deleteRecord">Да</paper-button>
+                </div>
+            </paper-dialog>
+			
+        </div>	
+		
+		
+	</div>	
+	
+	<div id="fab">
+            <paper-fab icon="add" class="red" style="position:fixed; bottom: 30px; right:24px" on-click="showAddRecordDialog">
+			</paper-fab>
+	</div>	
+
+
+	
+    
+  </template>
+
+  <script>Polymer({is:"category-screen",properties:{prop1:{type:String,value:"show-app"},listItems:{type:Array,value:[]}},ready:function(){this.listItems=[],this.latestCategoryName="",this.updateR()},showAddRecordDialog:function(){this.latestCategoryName="",this.$.addRecordDialog.open()},showEditRecordDialog:function(e){this.$.editRecordDialog.open(),this.editCategoryName=e.model.item.categoryName,this.latestCategoryName=e.model.item.categoryName},showDeleteRecordDialog:function(e){this.$.deleteRecordDialog.open(),this.latestCategoryName=e.model.item.categoryName},addRecord:function(){var e=openCategory.result,t=e.transaction("MyObjectStore","readwrite"),o=t.objectStore("MyObjectStore");ind+=1,console.log("ind: "+ind),o.put({id:ind,categoryName:this.latestCategoryName,isComplete:!1}),help.push({id:ind,categoryName:this.latestCategoryName,isComplete:!1}),this.latestCategoryName="",this.$.addRecordDialog.close(),this.updateRecords()},toggleRecord:function(e){var t,o=e.model.item.categoryName,r=help.findIndex(function(e){return e.categoryName===o});e.model.item.isComplete?(t=!0,help[r].isComplete=!0):(t=!1,help[r].isComplete=!1);var a=openCategory.result,s=a.transaction("MyObjectStore","readwrite"),i=s.objectStore("MyObjectStore"),c=i.index("categoryName"),n=c.get(o);n.onsuccess=function(e){console.log("---------------------------------------"),console.log("toogle: "+o+" complete "+t);var r=n.result;r.isComplete=t,i.put(r).onsuccess=function(){console.log("update")}},this.updateRecords()},editRecord:function(){var e=this.editCategoryName,t=this.latestCategoryName;console.log("category name: "+e);var o=help.findIndex(function(e){return e.categoryName===t}),r=openCategory.result,a=r.transaction("MyObjectStore","readwrite"),s=a.objectStore("MyObjectStore"),i=s.index("categoryName"),c=i.get(t);c.onsuccess=function(o){console.log("---------------------------------------"),console.log("edit: '"+t+"' to '"+e+"'");var r=c.result;r.categoryName=e,s.put(r).onsuccess=function(){console.log("edit")}},help[o].categoryName=e,this.$.editRecordDialog.close(),this.updateRecords(),console.log("edit")},deleteRecord:function(e){var t=this.latestCategoryName,o=openCategory.result,r=o.transaction("MyObjectStore","readwrite"),a=r.objectStore("MyObjectStore"),s=(a.index("categoryName"),this.listItems.findIndex(function(e){return e.categoryName===t})),i=a.delete(this.listItems[s].id),c=help.findIndex(function(e){return e.categoryName===t});help.splice(c,1),i.onsuccess=function(e){console.log("---------------------------------------"),console.log("categoryName: "+t),console.log("key: "+s),console.log("delete")},this.$.deleteRecordDialog.close(),this.updateRecords()},updateRecords:function(){console.log("---------------------------------------"),this.splice("listItems",0),this.listItems=[];var e=[];openCategory.result.transaction("MyObjectStore","readwrite").objectStore("MyObjectStore").index("categoryName").openCursor().onsuccess=function(t){if(cursor=t.target.result){var o={id:cursor.value.id,categoryName:cursor.value.categoryName,isComplete:cursor.value.isComplete};console.log("cursor: "+cursor.value.id+" "+cursor.value.categoryName+" "+cursor.value.isComplete),e.push(o),cursor.continue()}else console.log("-----test len: "+e.length)},help.sort(function(e,t){return e.id-t.id}),this.updateR(e)},updateR:function(e){for(this.splice("listItems",0),i=0;i<help.length;i++){var t={id:help[i].id,categoryName:help[i].categoryName,isComplete:help[i].isComplete};this.push("listItems",t)}},clearList:function(){help.splice(0,help.length)}});var ind=0,cursor,indexedDB=window.indexedDB||window.mozIndexedDB||window.webkitIndexedDB||window.msIndexedDB||window.shimIndexedDB,openCategory=indexedDB.open("Data7",1);openCategory.onupgradeneeded=function(){var e=openCategory.result,t=e.createObjectStore("MyObjectStore",{keyPath:"id"});t.createIndex("categoryName","categoryName")};var help=[];openCategory.onsuccess=function(){openCategory.result.transaction("MyObjectStore","readwrite").objectStore("MyObjectStore").index("categoryName").openCursor().onsuccess=function(e){if(cursor=e.target.result){var t={id:cursor.value.id,categoryName:cursor.value.categoryName,isComplete:cursor.value.isComplete};ind<cursor.value.id&&(ind=cursor.value.id),help.push(t),console.log("cursor: "+cursor.value.id+" "+cursor.value.categoryName+" "+cursor.value.isComplete),cursor.continue()}else console.log("ind: "+ind)}};</script>
+</dom-module>
+</body></html>

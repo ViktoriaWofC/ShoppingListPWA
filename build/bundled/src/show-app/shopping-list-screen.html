@@ -1,0 +1,188 @@
+<html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+
+
+</head><body><dom-module id="shopping-list-screen">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+	  
+	  #head {
+		display: block;
+        background-color: rgba(205, 255, 173, 1);
+		height:30px;
+		weight: 100px;
+		text-align:center;
+		line-height: 20px;
+		color:black;
+		padding-top:10px;
+		margin-bottom:2px;
+      }
+	  
+	  #inp{
+		display: block;
+        <!--background-color: rgba(205, 255, 173, 1);-->
+		background-color:white;
+		height:200px;
+		width: 200px;
+		text-align:center;
+		color:black;
+		padding:10px;
+		margin: 0 auto;
+	  }
+	  
+	  .block1 { 
+		width: 800px; 
+		height: 100px;
+		background: rgba(205, 255, 173, 1);
+		padding: 5px;
+		padding-right: 20px; 
+		padding-bottom: 30px;
+		border: solid 1px black; 
+		float: left;
+	   }
+	   
+	   .blockHelp { 
+		background: rgba(205, 255, 173, 1);
+		border: solid 1px black; 
+	   }
+	   
+	   .prokrutka {
+		height:150px; /* высота нашего блока */
+		background: #fff; /* цвет фона, белый */
+		border: 1px solid #C1C1C1; /* размер и цвет границы блока */
+		overflow-x: scroll; /* прокрутка по горизонтали */
+		overflow-y: scroll; /* прокрутка по вертикали */
+		}
+		
+		#fab { 
+		bottom: 20px;
+		right:20 px;
+		position: relative;
+		 
+	   }
+	   
+	   paper-fab.red {
+			--paper-fab-background: rgba(65, 0, 0, 1);
+			--paper-fab-keyboard-focus-background: var(--paper-light-blue-900);
+		  }
+	  
+    </style>
+	
+	<app-location route="{{route}}"></app-location>
+    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
+	
+		
+	
+	
+	<div>
+	  <div>
+            
+            <paper-listbox>
+                <template is="dom-repeat" items="{{ listItems }}">
+                    
+                    <paper-item>
+                        <paper-checkbox checked="{{ item.isComplete }}" class="flex-11 taskBox" on-change="toggleRecord">
+							<div style="margin-left:10px ;margin-right:20px">
+                                {{ item.itemName }} 
+								<br>								
+								<div style="font-sizesize:2; color:gray">
+									Категория:   {{ item.categoryName }}  
+								</div>
+							</div>
+							
+                                  
+                        </paper-checkbox>  
+						<paper-icon-button icon="create" class="flex-1" style="color: gray" on-click="showEditRecordDialog">
+                        </paper-icon-button>  						
+                        <paper-icon-button icon="delete" class="flex-1" style="color: gray" on-click="deleteRecord">
+                        </paper-icon-button>                    
+                    </paper-item>
+                </template>
+            </paper-listbox>
+ 
+            
+			
+			
+			
+			
+	
+ 
+            
+            <paper-dialog id="addRecordDialog" modal="">
+				<h4>Добавить покупку</h4>
+                <paper-input label="Имя покупки" value="{{ latestItemName }}">
+                </paper-input>
+				<paper-dropdown-menu label="Категория">
+				  <paper-listbox id="selectCateg" class="dropdown-content" selected="0">
+					<template is="dom-repeat" items="{{ categoryList }}">
+							
+							<paper-item>
+										{{ item.categoryName }}  
+					   
+							</paper-item>
+						</template>
+				  </paper-listbox>
+				</paper-dropdown-menu>
+                <div class="buttons">
+                    <paper-button dialog-dismiss="">Отмена</paper-button>
+                    <paper-button on-click="addRecord">Добавить</paper-button>
+                </div>
+            </paper-dialog>
+			
+			<paper-dialog id="editRecordDialog" modal="">
+				<h4>Редактировать покупку</h4>
+                <paper-input label="Имя покупки" value="{{ editItemsName }}">
+                </paper-input>
+				<paper-dropdown-menu label="Категория">
+				  <paper-listbox id="editCateg" class="dropdown-content">
+					<template is="dom-repeat" items="{{ categoryList }}" selected="0">
+							
+							<paper-item>
+										{{ item.categoryName }} 			   
+							</paper-item>
+						</template>
+				  </paper-listbox>
+				</paper-dropdown-menu>
+                <div class="buttons">
+                    <paper-button dialog-dismiss="">Отмена</paper-button>
+                    <paper-button on-click="editRecord">Сохранить</paper-button>
+                </div>
+            </paper-dialog>
+			
+			
+			
+        </div>	
+	
+		
+	</div>	
+	
+	<div id="fab">
+            <paper-fab icon="add" class="red" style="position:fixed; bottom: 30px; right:24px" on-click="showAddRecordDialog">
+			</paper-fab>
+	</div>	
+
+
+	
+    
+  </template>
+
+  <script>Polymer({is:"shopping-list-screen",properties:{prop1:{type:String,value:"show-app"},categoryList:{type:Array,value:[]},listItems:{type:Array,value:[]}},ready:function(){this.listItems=[],this.latestItemName="",this.latestCategoryName="",this.updateR(),this.categoryList=[]},showAddRecordDialog:function(){this.latestItemName="",this.$.addRecordDialog.open()},showEditRecordDialog:function(e){this.$.editRecordDialog.open(),this.editItemsName=e.model.item.itemName,this.editCategoryName=e.model.item.categoryName,this.latestItemName=e.model.item.itemName,this.latestCategoryName=e.model.item.categoryName;var t=this.categoryList.findIndex(function(t){return t.categoryName===e.model.item.categoryName});console.log("secect: "+t),this.$.editCateg.selected=""+t},addRecord:function(){var e=open.result,t=e.transaction("MyObjectStore","readwrite"),o=t.objectStore("MyObjectStore"),i=this.$.selectCateg.selected;this.latestCategoryName=this.categoryList[i].categoryName;var r=this.categoryList[i].id;ind+=1,console.log("ind: "+ind),o.put({id:ind,itemName:this.latestItemName,categoryName:this.latestCategoryName,categoryID:r,isComplete:!1}),helpS.push({id:ind,itemName:this.latestItemName,categoryName:this.latestCategoryName,categoryID:r,isComplete:!1}),this.latestItemName="",this.latestCategoryName="",this.$.addRecordDialog.close(),this.$.selectCateg.selected="0",this.updateRecords()},toggleRecord:function(e){var t,o=e.model.item.itemName,i=helpS.findIndex(function(e){return e.itemName===o});e.model.item.isComplete?(t=!0,helpS[i].isComplete=!0):(t=!1,helpS[i].isComplete=!1);var r=open.result,s=r.transaction("MyObjectStore","readwrite"),a=s.objectStore("MyObjectStore"),c=a.index("itemName"),n=c.get(o);n.onsuccess=function(e){console.log("---------------------------------------"),console.log("toogle: "+o+" complete "+t);var i=n.result;i.isComplete=t,a.put(i).onsuccess=function(){console.log("update")}},this.updateRecords()},editRecord:function(){var e=this.editItemsName,t=this.latestItemName,o=(this.latestCategoryName,this.$.editCateg.selected),i=this.categoryList[o].categoryName,r=helpS.findIndex(function(e){return e.itemName===t}),s=open.result,a=s.transaction("MyObjectStore","readwrite"),c=a.objectStore("MyObjectStore"),n=c.index("itemName"),l=n.get(t);l.onsuccess=function(o){console.log("---------------------------------------"),console.log("edit: '"+t+"' to '"+e+"'");var r=l.result;r.itemName=e,r.categoryName=i,c.put(r).onsuccess=function(){console.log("edit")}},helpS[r].itemName=e,helpS[r].categoryName=i,this.$.editRecordDialog.close(),this.updateRecords(),console.log("edit")},deleteRecord:function(e){var t=e.model.item.itemName,o=open.result,i=o.transaction("MyObjectStore","readwrite"),r=i.objectStore("MyObjectStore"),s=(r.index("itemName"),e.model.item.id),a=r.delete(s),c=helpS.findIndex(function(e){return e.itemName===t});helpS.splice(c,1),a.onsuccess=function(e){console.log("---------------------------------------"),console.log("itemName: "+t),console.log("key: "+s),console.log("delete")},this.updateRecords()},updateRecords:function(){console.log("---------------------------------------"),this.splice("listItems",0),this.listItems=[],open.result.transaction("MyObjectStore","readwrite").objectStore("MyObjectStore").index("itemName").openCursor().onsuccess=function(e){(cursor=e.target.result)&&(cursor.value.id,cursor.value.itemName,cursor.value.isComplete,cursor.value.categoryID,console.log("cursor: "+cursor.value.id+" "+cursor.value.itemName+" "+cursor.value.categoryName+" "+cursor.value.categoryID+" "+cursor.value.isComplete),cursor.continue())},helpS.sort(function(e,t){return e.id-t.id}),this.updateR()},updateR:function(){for(this.splice("listItems",0),i=0;i<helpS.length;i++){var e={id:helpS[i].id,itemName:helpS[i].itemName,categoryName:helpS[i].categoryName,categoryID:helpS[i].categoryID,isComplete:helpS[i].isComplete};this.push("listItems",e)}},updateAfterClick:function(e){for(console.log("categ length: "+e.length),this.splice("categoryList",0),i=0;i<e.length;i++){var t={id:e[i].id,categoryName:e[i].categoryName,isComplete:e[i].isComplete};this.push("categoryList",t)}helpS.length;for(i=0;i<helpS.length;i++){var o=e.findIndex(function(e){return e.id===helpS[i].categoryID});console.log("index   : "+o),-1===o?(helpS.splice(i,1),i-=1):helpS[i].categoryName=e[o].categoryName}var r=open.result,s=r.transaction("MyObjectStore","readwrite"),a=s.objectStore("MyObjectStore"),c=[];a.index("categoryName").openCursor().onsuccess=function(t){if(cursor=t.target.result){var o=e.findIndex(function(e){return e.id===cursor.value.categoryID});if(-1===o)cursor.delete();else{var i=a.index("itemName"),r=i.get(cursor.value.itemName);r.onsuccess=function(t){console.log("---------------------------------------");var i=r.result;i.categoryName=e[o].categoryName,a.put(i).onsuccess=function(){console.log("edit")}}}cursor.continue()}else console.log("indexes.length: "+c.length)},this.updateRecords()}});var rep=0,ind=0,cursor,indexedDB=window.indexedDB||window.mozIndexedDB||window.webkitIndexedDB||window.msIndexedDB||window.shimIndexedDB,open=indexedDB.open("DataS29",1);open.onupgradeneeded=function(){var e=open.result,t=e.createObjectStore("MyObjectStore",{keyPath:"id"});t.createIndex("itemName","itemName"),t.createIndex("categoryName","categoryName")};var helpS=[];open.onsuccess=function(){var e=open.result,t=e.transaction("MyObjectStore","readwrite"),o=t.objectStore("MyObjectStore"),i=o.index("itemName");o.put({id:ind,itemName:"Test",categoryName:"",isComplete:!1}),i.openCursor().onsuccess=function(e){if(cursor=e.target.result){var t={id:cursor.value.id,itemName:cursor.value.itemName,categoryName:cursor.value.categoryName,categoryID:cursor.value.categoryID,isComplete:cursor.value.isComplete};ind<cursor.value.id&&(ind=cursor.value.id),helpS.push(t),console.log("cursor: "+cursor.value.id+" "+cursor.value.itemName+" "+cursor.value.isComplete+" "+cursor.value.categoryName+" "+cursor.value.categoryID),cursor.continue()}else console.log("ind: "+ind)}};</script>
+</dom-module>
+</body></html>

@@ -268,13 +268,14 @@
 			var select = this.$.selectCateg.selected;
 			//console.log("secect: "+ select);
 			this.latestCategoryName = this.categoryList[select].categoryName;
+			var ctID = this.categoryList[select].id;
 
 			ind = ind +1;
 			console.log("ind: "+ind);
 			//console.log("latestCategoryName: "+this.latestCategoryName);
 			// Add some data
-			store.put({id: ind, itemName: this.latestItemName, categoryName: this.latestCategoryName,isComplete: false	});
-			helpS.push({id: ind, itemName: this.latestItemName, categoryName: this.latestCategoryName,isComplete: false});
+			store.put({id: ind, itemName: this.latestItemName, categoryName: this.latestCategoryName, categoryID: ctID,isComplete: false	});
+			helpS.push({id: ind, itemName: this.latestItemName, categoryName: this.latestCategoryName, categoryID: ctID,isComplete: false});
 			//this.push('listItems', {id: ind, categoryName: this.latestItemName,isComplete: false});
 		 
 			// Сброс latestItemName
@@ -461,11 +462,12 @@
 				  var category = {
 					id: cursor.value.id,
 					itemName: cursor.value.itemName,
-					isComplete: cursor.value.isComplete
+					isComplete: cursor.value.isComplete,
+					categoryID:cursor.value.categoryID,
 				};
 			
 
-				console.log("cursor: "+cursor.value.id+" "+cursor.value.itemName+" "+cursor.value.categoryName+" "+cursor.value.isComplete);
+				console.log("cursor: "+cursor.value.id+" "+cursor.value.itemName+" "+cursor.value.categoryName+" "+cursor.value.categoryID+" "+cursor.value.isComplete);
 				
 				//helpS.push(category);
 				
@@ -499,6 +501,7 @@
 					id: helpS[i].id,
 					itemName: helpS[i].itemName,
 					categoryName: helpS[i].categoryName,
+					categoryID:helpS[i].categoryID,
 					isComplete: helpS[i].isComplete
 				};
 
@@ -523,6 +526,7 @@
 					id: categ[i].id,
 					categoryName: categ[i].categoryName,
 					isComplete: categ[i].isComplete
+					//categoryID: categ[i].id;
 				};
 
 				
@@ -534,18 +538,23 @@
 			
 			}
 			
+			var n = helpS.length;
 			for(i = 0; i< helpS.length;i++){
 				var index = categ.findIndex(function(o){
-					 return o.categoryName === helpS[i].categoryName;
+					 return o.id === helpS[i].categoryID;
 				})
 				console.log("index   : "+index);
 				
-				if(index ===-1){					
-				
+				if(index ===-1){
+					//iD.push(i);
 					helpS.splice(i,1);
+					i = i-1;
+				}else{
+					helpS[i].categoryName = categ[index].categoryName;
 				}				
 	
-			}
+			}			
+
 			
 			
 			
@@ -557,6 +566,8 @@
 			
 			var indexItem = storeItem.index("categoryName");
 			
+			
+			
 			var indexes = [];
 			
 			indexItem.openCursor().onsuccess = function(event) {
@@ -565,12 +576,30 @@
 				if(cursor) {
 				
 					var index = categ.findIndex(function(o){
-						 return o.categoryName === cursor.value.categoryName;
+						 return o.id === cursor.value.categoryID;
 					})
 					//console.log("catg name: "+cursor.value.categoryName+"  catg index: "+index);
 					//helpS.splice(index, 1);
 					if(index ===-1){
 						cursor.delete();
+					}else{
+						var index2 = storeItem.index("itemName");
+						var objectStoreRequest = index2.get(cursor.value.itemName);
+									
+						  objectStoreRequest.onsuccess = function(event) {
+							console.log("---------------------------------------");
+							//console.log("edit: '"+ cursor.value.itemName + "' to '"+ categ[index].categoryName+"'");
+							var data = objectStoreRequest.result;
+							data.categoryName = categ[index].categoryName;
+							
+							var updateRequest = storeItem.put(data);
+							updateRequest.onsuccess = function() {
+								console.log("edit");
+							  };
+
+							
+						  };
+						
 					}
 				
 
@@ -642,6 +671,7 @@
 				id: cursor.value.id,
 				itemName: cursor.value.itemName,
 				categoryName:cursor.value.categoryName,
+				categoryID:cursor.value.categoryID,
 				isComplete: cursor.value.isComplete
 			};
 			
@@ -649,7 +679,7 @@
 			
 			helpS.push(category);
 			//console.log(helpS[helpS.length-1]);
-			console.log("cursor: "+cursor.value.id+" "+cursor.value.itemName+" "+cursor.value.isComplete+" "+cursor.value.categoryName);
+			console.log("cursor: "+cursor.value.id+" "+cursor.value.itemName+" "+cursor.value.isComplete+" "+cursor.value.categoryName+" "+cursor.value.categoryID);
 				//this.push('listItems', category);
 			  cursor.continue();
 			} else {
